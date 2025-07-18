@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class LEDTextState {
+  final String currentText;
+  final List<String> textHistory;
+  final int scrollDirection;
+  final double scrollSpeed;
+  final bool isTextBlinking;
+  final double textBlinkSpeed;
+  final bool isBackgroundBlinking;
+  final double backgroundBlinkSpeed;
+  final String selectedFont;
+  final double fontSize;
+  final Color fontColor;
+  final Color backgroundColor;
+  final Color blinkBackgroundColor;
+  final bool keepScreenOn;
+  final bool isScrolling;
+
+  LEDTextState({
+    this.currentText = 'LED Text Bergulir',
+    this.textHistory = const [],
+    this.scrollDirection = 0,
+    this.scrollSpeed = 50.0,
+    this.isTextBlinking = false,
+    this.textBlinkSpeed = 1.0,
+    this.isBackgroundBlinking = false,
+    this.backgroundBlinkSpeed = 1.0,
+    this.selectedFont = 'Default',
+    this.fontSize = 24.0,
+    this.fontColor = Colors.green,
+    this.backgroundColor = Colors.black,
+    this.blinkBackgroundColor = Colors.red,
+    this.keepScreenOn = false,
+    this.isScrolling = false,
+  });
+
+  LEDTextState copyWith({
+    String? currentText,
+    List<String>? textHistory,
+    int? scrollDirection,
+    double? scrollSpeed,
+    bool? isTextBlinking,
+    double? textBlinkSpeed,
+    bool? isBackgroundBlinking,
+    double? backgroundBlinkSpeed,
+    String? selectedFont,
+    double? fontSize,
+    Color? fontColor,
+    Color? backgroundColor,
+    Color? blinkBackgroundColor,
+    bool? keepScreenOn,
+    bool? isScrolling,
+  }) {
+    return LEDTextState(
+      currentText: currentText ?? this.currentText,
+      textHistory: textHistory ?? this.textHistory,
+      scrollDirection: scrollDirection ?? this.scrollDirection,
+      scrollSpeed: scrollSpeed ?? this.scrollSpeed,
+      isTextBlinking: isTextBlinking ?? this.isTextBlinking,
+      textBlinkSpeed: textBlinkSpeed ?? this.textBlinkSpeed,
+      isBackgroundBlinking: isBackgroundBlinking ?? this.isBackgroundBlinking,
+      backgroundBlinkSpeed: backgroundBlinkSpeed ?? this.backgroundBlinkSpeed,
+      selectedFont: selectedFont ?? this.selectedFont,
+      fontSize: fontSize ?? this.fontSize,
+      fontColor: fontColor ?? this.fontColor,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      blinkBackgroundColor: blinkBackgroundColor ?? this.blinkBackgroundColor,
+      keepScreenOn: keepScreenOn ?? this.keepScreenOn,
+      isScrolling: isScrolling ?? this.isScrolling,
+    );
+  }
+}
+
+class LEDTextCubit extends Cubit<LEDTextState> {
+  LEDTextCubit() : super(LEDTextState()) {
+    _loadSavedData();
+  }
+
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson = prefs.getStringList('text_history') ?? [];
+    final currentText = prefs.getString('current_text') ?? 'LED Text Bergulir';
+
+    emit(
+      state.copyWith(
+        currentText: currentText,
+        textHistory: historyJson,
+        scrollDirection: prefs.getInt('scroll_direction') ?? 0,
+        scrollSpeed: prefs.getDouble('scroll_speed') ?? 50.0,
+        isTextBlinking: prefs.getBool('is_text_blinking') ?? false,
+        textBlinkSpeed: prefs.getDouble('text_blink_speed') ?? 1.0,
+        isBackgroundBlinking: prefs.getBool('is_background_blinking') ?? false,
+        backgroundBlinkSpeed: prefs.getDouble('background_blink_speed') ?? 1.0,
+        selectedFont: prefs.getString('selected_font') ?? 'Default',
+        fontSize: prefs.getDouble('font_size') ?? 24.0,
+        fontColor: Color(prefs.getInt('font_color') ?? Colors.green.value),
+        backgroundColor: Color(
+          prefs.getInt('background_color') ?? Colors.black.value,
+        ),
+        blinkBackgroundColor: Color(
+          prefs.getInt('blink_background_color') ?? Colors.red.value,
+        ),
+        keepScreenOn: prefs.getBool('keep_screen_on') ?? false,
+      ),
+    );
+  }
+
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('text_history', state.textHistory);
+    await prefs.setString('current_text', state.currentText);
+    await prefs.setInt('scroll_direction', state.scrollDirection);
+    await prefs.setDouble('scroll_speed', state.scrollSpeed);
+    await prefs.setBool('is_text_blinking', state.isTextBlinking);
+    await prefs.setDouble('text_blink_speed', state.textBlinkSpeed);
+    await prefs.setBool('is_background_blinking', state.isBackgroundBlinking);
+    await prefs.setDouble('background_blink_speed', state.backgroundBlinkSpeed);
+    await prefs.setString('selected_font', state.selectedFont);
+    await prefs.setDouble('font_size', state.fontSize);
+    await prefs.setInt('font_color', state.fontColor.value);
+    await prefs.setInt('background_color', state.backgroundColor.value);
+    await prefs.setInt(
+      'blink_background_color',
+      state.blinkBackgroundColor.value,
+    );
+    await prefs.setBool('keep_screen_on', state.keepScreenOn);
+  }
+
+  void updateText(String text) {
+    if (text.isNotEmpty && text != state.currentText) {
+      List<String> newHistory = List.from(state.textHistory);
+      if (!newHistory.contains(text)) {
+        newHistory.insert(0, text);
+        if (newHistory.length > 20) {
+          newHistory = newHistory.take(20).toList();
+        }
+      }
+      emit(state.copyWith(currentText: text, textHistory: newHistory));
+      _saveData();
+    }
+  }
+
+  void selectFromHistory(String text) {
+    emit(state.copyWith(currentText: text));
+    _saveData();
+  }
+
+  void deleteFromHistory(String text) {
+    List<String> newHistory = List.from(state.textHistory);
+    newHistory.remove(text);
+    emit(state.copyWith(textHistory: newHistory));
+    _saveData();
+  }
+
+  void clearHistory() {
+    emit(state.copyWith(textHistory: []));
+    _saveData();
+  }
+
+  void updateScrollDirection(int direction) {
+    emit(state.copyWith(scrollDirection: direction));
+    _saveData();
+  }
+
+  void updateScrollSpeed(double speed) {
+    emit(state.copyWith(scrollSpeed: speed));
+    _saveData();
+  }
+
+  void updateTextBlinking(bool isBlinking) {
+    emit(state.copyWith(isTextBlinking: isBlinking));
+    _saveData();
+  }
+
+  void updateTextBlinkSpeed(double speed) {
+    emit(state.copyWith(textBlinkSpeed: speed));
+    _saveData();
+  }
+
+  void updateBackgroundBlinking(bool isBlinking) {
+    emit(state.copyWith(isBackgroundBlinking: isBlinking));
+    _saveData();
+  }
+
+  void updateBackgroundBlinkSpeed(double speed) {
+    emit(state.copyWith(backgroundBlinkSpeed: speed));
+    _saveData();
+  }
+
+  void updateFont(String font) {
+    emit(state.copyWith(selectedFont: font));
+    _saveData();
+  }
+
+  void updateFontSize(double size) {
+    emit(state.copyWith(fontSize: size));
+    _saveData();
+  }
+
+  void updateFontColor(Color color) {
+    emit(state.copyWith(fontColor: color));
+    _saveData();
+  }
+
+  void updateBackgroundColor(Color color) {
+    emit(state.copyWith(backgroundColor: color));
+    _saveData();
+  }
+
+  void updateBlinkBackgroundColor(Color color) {
+    emit(state.copyWith(blinkBackgroundColor: color));
+    _saveData();
+  }
+
+  void updateKeepScreenOn(bool keepOn) {
+    emit(state.copyWith(keepScreenOn: keepOn));
+    _saveData();
+  }
+
+  void startScrolling() {
+    emit(state.copyWith(isScrolling: true));
+  }
+
+  void stopScrolling() {
+    emit(state.copyWith(isScrolling: false));
+  }
+}
