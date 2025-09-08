@@ -50,6 +50,11 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
   }
 
   void _setPortraitMode() {
+    //buat jadi ga bisa rotate
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     // Set immersive sticky mode for better fullscreen experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
@@ -164,41 +169,6 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
               ),
             ),
           ),
-          !_isVisible
-              ? Visibility(
-                  visible: !_isLocked,
-                  child: BlocBuilder<LEDTextCubit, LEDTextState>(
-                    builder: (context, state) {
-                      return Positioned(
-                        top: 40,
-                        left: 20,
-                        child: Container(
-                          padding: EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black45,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              Switch(
-                                activeColor: Colors.blue,
-                                value: state.keepScreenOn,
-                                onChanged: (value) => context
-                                    .read<LEDTextCubit>()
-                                    .updateKeepScreenOn(value),
-                              ),
-                              Text(
-                                AppConstants.nyalaTerus,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                )
-              : SizedBox(),
 
           !_isVisible
               ? Visibility(
@@ -275,6 +245,16 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
               ),
               style: TextStyle(color: Colors.white, fontSize: 16),
               textInputAction: TextInputAction.done,
+              onChanged: (value) {
+                final upper = value.toUpperCase();
+                if (value != upper) {
+                  final selection = _textController.selection;
+                  _textController.value = TextEditingValue(
+                    text: upper,
+                    selection: selection,
+                  );
+                }
+              },
               onSubmitted: (value) => _updateText(),
             ),
           ),

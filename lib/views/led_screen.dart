@@ -7,6 +7,7 @@ import 'package:led_text/models/state_cubit.dart';
 import 'package:led_text/widgets/text_scrolling_widget.dart';
 import 'dart:math' as math;
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:led_text/utils/animation_utils.dart';
 
 class LEDDisplayScreen extends StatefulWidget {
@@ -253,18 +254,161 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
   }
 
   Widget _buildAnimatedText(LEDTextState state, Color currentFontColor) {
-    Widget textWidget = RotatedBox(
-      quarterTurns: 1,
-      child: AutoSizeText(
-        state.currentText,
-        // minFontSize: 300,
-        style: TextStyle(
+    TextStyle style;
+    switch (state.selectedFont) {
+      case 'Roboto':
+        style = GoogleFonts.roboto(
           fontSize: state.fontSize,
           color: currentFontColor,
-          fontFamily: _getFontFamily(state.selectedFont),
           fontWeight: FontWeight.bold,
-        ),
-      ),
+        );
+        break;
+      case 'Lato':
+        style = GoogleFonts.lato(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Oswald':
+        style = GoogleFonts.oswald(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Montserrat':
+        style = GoogleFonts.montserrat(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Poppins':
+        style = GoogleFonts.poppins(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Raleway':
+        style = GoogleFonts.raleway(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Merriweather':
+        style = GoogleFonts.merriweather(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Open Sans':
+        style = GoogleFonts.openSans(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Nunito':
+        style = GoogleFonts.nunito(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Quicksand':
+        style = GoogleFonts.quicksand(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Bebas Neue':
+        style = GoogleFonts.bebasNeue(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Dancing Script':
+        style = GoogleFonts.dancingScript(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Pacifico':
+        style = GoogleFonts.pacifico(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Indie Flower':
+        style = GoogleFonts.indieFlower(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Orbitron':
+        style = GoogleFonts.orbitron(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Anton':
+        style = GoogleFonts.anton(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Bangers':
+        style = GoogleFonts.bangers(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Monospace':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Serif':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'serif',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Sans-serif':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'sans-serif',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      default:
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+    }
+    Widget textWidget = RotatedBox(
+      quarterTurns: 1,
+      child: AutoSizeText(state.currentText, style: style),
     );
 
     final animation = _animations[state.currentAnimation];
@@ -305,9 +449,7 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
           _updateBlinkAnimations(state);
           _updateEffectAnimation(state.currentAnimation);
 
-          if (state.keepScreenOn) {
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-          }
+          // Hapus logic keepScreenOn
         },
         child: BlocBuilder<LEDTextCubit, LEDTextState>(
           builder: (context, state) {
@@ -353,7 +495,7 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
                         : TextScrollingWidget(
                             currentFontColor: currentFontColor,
                             state: state,
-                            fontFamily: _getFontFamily(state.selectedFont),
+                            selectedFont: state.selectedFont,
                           ),
                   ),
                 );
