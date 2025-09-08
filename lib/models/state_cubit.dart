@@ -17,7 +17,6 @@ class LEDTextState {
   final Color fontColor;
   final Color backgroundColor;
   final Color blinkBackgroundColor;
-  final bool keepScreenOn;
   final bool isScrolling;
   final AnimationType currentAnimation;
   // Gradient properties
@@ -41,7 +40,6 @@ class LEDTextState {
     this.fontColor = Colors.green,
     this.backgroundColor = Colors.black,
     this.blinkBackgroundColor = Colors.red,
-    this.keepScreenOn = false,
     this.isScrolling = false,
     // Gradient defaults
     this.isGradientEnabled = false,
@@ -65,7 +63,6 @@ class LEDTextState {
     Color? fontColor,
     Color? backgroundColor,
     Color? blinkBackgroundColor,
-    bool? keepScreenOn,
     bool? isScrolling,
     // Gradient parameters
     bool? isGradientEnabled,
@@ -88,7 +85,6 @@ class LEDTextState {
       fontColor: fontColor ?? this.fontColor,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       blinkBackgroundColor: blinkBackgroundColor ?? this.blinkBackgroundColor,
-      keepScreenOn: keepScreenOn ?? this.keepScreenOn,
       isScrolling: isScrolling ?? this.isScrolling,
       // Gradient properties
       isGradientEnabled: isGradientEnabled ?? this.isGradientEnabled,
@@ -138,7 +134,6 @@ class LEDTextCubit extends Cubit<LEDTextState> {
         blinkBackgroundColor: Color(
           prefs.getInt('blink_background_color') ?? Colors.red.value,
         ),
-        keepScreenOn: prefs.getBool('keep_screen_on') ?? false,
         // Gradient properties
         isGradientEnabled: prefs.getBool('is_gradient_enabled') ?? false,
         gradientStartColor: Color(
@@ -171,7 +166,6 @@ class LEDTextCubit extends Cubit<LEDTextState> {
       'blink_background_color',
       state.blinkBackgroundColor.value,
     );
-    await prefs.setBool('keep_screen_on', state.keepScreenOn);
     // Gradient properties
     await prefs.setBool('is_gradient_enabled', state.isGradientEnabled);
     await prefs.setInt('gradient_start_color', state.gradientStartColor.value);
@@ -267,11 +261,6 @@ class LEDTextCubit extends Cubit<LEDTextState> {
 
   void updateBlinkBackgroundColor(Color color) {
     emit(state.copyWith(blinkBackgroundColor: color));
-    _saveData();
-  }
-
-  void updateKeepScreenOn(bool keepOn) {
-    emit(state.copyWith(keepScreenOn: keepOn));
     _saveData();
   }
 
