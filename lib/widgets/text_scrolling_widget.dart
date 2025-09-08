@@ -15,25 +15,28 @@ class TextScrollingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Marquee(
-      key: ValueKey(
-        '${state.scrollDirection}_${state.scrollSpeed}_${state.currentText}',
+    return RotatedBox(
+      quarterTurns: state.scrollDirection,
+      child: Marquee(
+        key: ValueKey(
+          '${state.scrollDirection}_${state.scrollSpeed}_${state.currentText}',
+        ),
+        text: state.currentText,
+        style: TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: fontFamily,
+          fontWeight: FontWeight.bold,
+        ),
+        scrollAxis: Axis.horizontal,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        blankSpace: MediaQuery.of(context).size.width,
+        velocity: state.scrollSpeed,
+        pauseAfterRound: Duration(seconds: 0),
+        startPadding: 10,
+        accelerationCurve: Curves.linear,
+        decelerationCurve: Curves.easeOut,
       ),
-      text: state.currentText,
-      style: TextStyle(
-        fontSize: state.fontSize,
-        color: currentFontColor,
-        fontFamily: fontFamily,
-        fontWeight: FontWeight.bold,
-      ),
-      scrollAxis: Axis.horizontal,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      blankSpace: MediaQuery.of(context).size.width,
-      velocity: state.scrollSpeed * (state.scrollDirection == 0 ? 1 : -1),
-      pauseAfterRound: Duration(seconds: 0),
-      startPadding: 10,
-      accelerationCurve: Curves.linear,
-      decelerationCurve: Curves.easeOut,
     );
   }
 }
