@@ -5,32 +5,34 @@ class SliderWidget extends StatelessWidget {
   final double value;
   final double min;
   final double max;
-  final int divisions;
-  final Function(double) onChanged;
+  final ValueChanged<double> onChanged;
+
   const SliderWidget({
-    super.key,
+    Key? key,
     required this.label,
     required this.value,
     required this.min,
     required this.max,
-    required this.divisions,
     required this.onChanged,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ', style: TextStyle(color: Colors.white70)),
-        Expanded(
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            label: value.round().toString(),
-            onChanged: onChanged,
-          ),
+        Text(
+          '$label: ${value.toInt()}',
+          style: const TextStyle(color: Colors.white),
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          divisions: (max - min).toInt(),
+          activeColor: Colors.blue,
+          inactiveColor: Colors.grey,
+          onChanged: onChanged,
         ),
       ],
     );

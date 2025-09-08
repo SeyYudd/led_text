@@ -15,7 +15,7 @@ class LEDTextApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'LED Text Bergulir',
+      title: 'Led Teks Konser',
       theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
       home: BlocProvider(
         create: (context) => LEDTextCubit(),

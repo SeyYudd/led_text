@@ -17,26 +17,23 @@ class DirectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        IconButton(
-          onPressed: () {
-            context.read<LEDTextCubit>().updateScrollDirection(direction);
-          },
-          icon: Icon(
-            icon,
-            size: 40,
-            color: isSelected ? Colors.blue : Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.blue : Colors.white70,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
+    return ElevatedButton(
+      onPressed: () =>
+          context.read<LEDTextCubit>().updateScrollDirection(direction),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Colors.blue : Colors.grey[700],
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Column(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20),
+          Text(label, style: TextStyle(fontSize: 12)),
+        ],
+      ),
     );
   }
 }
