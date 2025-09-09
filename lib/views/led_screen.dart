@@ -256,6 +256,14 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
   Widget _buildAnimatedText(LEDTextState state, Color currentFontColor) {
     TextStyle style;
     switch (state.selectedFont) {
+      case 'Impact':
+        style = GoogleFonts.getFont(
+          'Impact',
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
       case 'Roboto':
         style = GoogleFonts.roboto(
           fontSize: state.fontSize,

@@ -19,7 +19,7 @@ class GradientWidget extends StatelessWidget {
               children: [
                 Text(
                   'Enable Gradient',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.black, fontSize: 16),
                 ),
                 Switch(
                   value: state.isGradientEnabled,
@@ -36,7 +36,7 @@ class GradientWidget extends StatelessWidget {
               // Gradient Direction
               Text(
                 'Gradient Direction',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.black, fontSize: 14),
               ),
               SizedBox(height: 8),
               Row(

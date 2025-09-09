@@ -18,6 +18,14 @@ class TextScrollingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     TextStyle style;
     switch (selectedFont) {
+      case 'Impact':
+        style = GoogleFonts.getFont(
+          'Impact',
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
       case 'Roboto':
         style = GoogleFonts.roboto(
           fontSize: state.fontSize,
