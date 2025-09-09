@@ -5,11 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:led_text/models/state_cubit.dart';
 import 'package:led_text/views/led_screen.dart';
 import 'package:led_text/widgets/switch_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/build_section.dart';
 import '../widgets/color_picker_widget.dart';
 import '../utils/animation_utils.dart';
-import '../widgets/direction_button.dart';
 import '../widgets/slider_widget.dart';
 import '../constants/app_constants.dart';
 import '../widgets/gradient_widget.dart';
@@ -177,15 +177,15 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                     builder: (context, state) {
                       return SafeArea(
                         child: DraggableScrollableSheet(
-                          initialChildSize: 0.2,
-                          minChildSize: 0.2,
+                          initialChildSize: _showAdvancedSettings ? 0.6 : 0.2,
+                          minChildSize: _showAdvancedSettings ? 0.6 : 0.2,
                           maxChildSize: _showAdvancedSettings ? 0.8 : 0.2,
                           controller: _scrollController,
                           builder: (context, scrollController) {
                             return Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.black54,
+                                color: Colors.blueAccent.shade100.withValues(alpha: .3),
                                 borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(20),
                                   topRight: Radius.circular(20),
@@ -305,23 +305,32 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      DirectionButton(
-                        label: AppConstants.samping,
+                      CuteDirectionButton(
                         icon: Icons.arrow_back,
-                        direction: 0,
+                        label: 'Kiri',
+                        color: Colors.pinkAccent.shade100,
                         isSelected: state.scrollDirection == 0,
+                        onTap: () => context
+                            .read<LEDTextCubit>()
+                            .updateScrollDirection(0),
                       ),
-                      DirectionButton(
-                        label: AppConstants.atas,
+                      CuteDirectionButton(
                         icon: Icons.arrow_upward,
-                        direction: 1,
+                        label: 'Atas',
+                        color: Colors.lightBlueAccent.shade100,
                         isSelected: state.scrollDirection == 1,
+                        onTap: () => context
+                            .read<LEDTextCubit>()
+                            .updateScrollDirection(1),
                       ),
-                      DirectionButton(
-                        label: AppConstants.stop,
+                      CuteDirectionButton(
                         icon: Icons.pause,
-                        direction: 2,
+                        label: 'Diam',
+                        color: Colors.amberAccent.shade100,
                         isSelected: state.scrollDirection == 2,
+                        onTap: () => context
+                            .read<LEDTextCubit>()
+                            .updateScrollDirection(2),
                       ),
                     ],
                   ),
@@ -356,13 +365,13 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                     children: [
                       Text(
                         AppConstants.fontLabel,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.black),
                       ),
                       Expanded(
                         child: DropdownButton<String>(
                           value: state.selectedFont,
-                          dropdownColor: Colors.grey[700],
-                          style: TextStyle(color: Colors.white),
+                          dropdownColor: Colors.black,
+                          style: TextStyle(color: Colors.black),
                           isExpanded: true,
                           items: AppConstants.fontOptions
                               .map(
@@ -416,6 +425,71 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
               ),
             ),
             _buildBlinkSection(state),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.pinkAccent.shade100.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.favorite, color: Colors.white, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Versi 1.0.4',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () async {
+                    final url = Uri.parse(
+                      'https://play.google.com/store/apps/developer?id=Kaka+Sey',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlueAccent.shade100.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.code, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'find all my apps',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -489,6 +563,66 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
             ],
           ],
         ],
+      ),
+    );
+  }
+}
+
+class CuteDirectionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const CuteDirectionButton({
+    Key? key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : color.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : [],
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

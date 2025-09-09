@@ -14,7 +14,7 @@ Widget buildSection(String title, Widget child) {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

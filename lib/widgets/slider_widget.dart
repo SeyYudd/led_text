@@ -8,13 +8,13 @@ class SliderWidget extends StatelessWidget {
   final ValueChanged<double> onChanged;
 
   const SliderWidget({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.min,
     required this.max,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class SliderWidget extends StatelessWidget {
       children: [
         Text(
           '$label: ${value.toInt()}',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black),
         ),
         Slider(
           value: value,
