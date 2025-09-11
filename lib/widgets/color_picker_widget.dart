@@ -29,7 +29,7 @@ class ColorPickerWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.black)),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
         const SizedBox(height: 8),
         Row(
           children: [

@@ -23,7 +23,7 @@ class SliderWidget extends StatelessWidget {
       children: [
         Text(
           '$label: ${value.toInt()}',
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
         Slider(
           value: value,

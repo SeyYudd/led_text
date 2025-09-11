@@ -28,7 +28,7 @@ class LEDTextState {
   LEDTextState({
     this.currentText = 'LED Text Bergulir',
     this.textHistory = const [],
-    this.scrollDirection = 0,
+    this.scrollDirection = 1,
     this.scrollSpeed = 50.0,
     this.currentAnimation = AnimationType.none,
     this.isTextBlinking = false,
@@ -37,8 +37,8 @@ class LEDTextState {
     this.backgroundBlinkSpeed = 1.0,
     this.selectedFont = 'Default',
     this.fontSize = 24.0,
-    this.fontColor = Colors.green,
-    this.backgroundColor = Colors.black,
+    this.fontColor = Colors.black,
+    this.backgroundColor = Colors.white,
     this.blinkBackgroundColor = Colors.red,
     this.isScrolling = false,
     // Gradient defaults
@@ -103,7 +103,7 @@ class LEDTextCubit extends Cubit<LEDTextState> {
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final historyJson = prefs.getStringList('text_history') ?? [];
-    final currentText = prefs.getString('current_text') ?? 'Teks LED Bergulir';
+    final currentText = prefs.getString('current_text') ?? 'Disini Isi Teks Kamu...';
     final animationString = prefs.getString('current_animation');
 
     AnimationType currentAnimation = AnimationType.none;
@@ -119,7 +119,7 @@ class LEDTextCubit extends Cubit<LEDTextState> {
         currentText: currentText,
         textHistory: historyJson,
         currentAnimation: currentAnimation,
-        scrollDirection: prefs.getInt('scroll_direction') ?? 0,
+        scrollDirection: prefs.getInt('scroll_direction') ?? 1,
         scrollSpeed: prefs.getDouble('scroll_speed') ?? 125.0,
         isTextBlinking: prefs.getBool('is_text_blinking') ?? false,
         textBlinkSpeed: prefs.getDouble('text_blink_speed') ?? 1.0,
@@ -127,9 +127,9 @@ class LEDTextCubit extends Cubit<LEDTextState> {
         backgroundBlinkSpeed: prefs.getDouble('background_blink_speed') ?? 1.0,
         selectedFont: prefs.getString('selected_font') ?? 'Default',
         fontSize: prefs.getDouble('font_size') ?? 96.0,
-        fontColor: Color(prefs.getInt('font_color') ?? Colors.green.value),
+        fontColor: Color(prefs.getInt('font_color') ?? Colors.black.value),
         backgroundColor: Color(
-          prefs.getInt('background_color') ?? Colors.black.value,
+          prefs.getInt('background_color') ?? Colors.white.value,
         ),
         blinkBackgroundColor: Color(
           prefs.getInt('blink_background_color') ?? Colors.red.value,
