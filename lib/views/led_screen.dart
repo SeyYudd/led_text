@@ -21,8 +21,8 @@ class LEDDisplayScreen extends StatefulWidget {
 class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     with TickerProviderStateMixin {
   // Animation Controllers Map for cleaner management
-  Map<AnimationType, AnimationController> _controllers = {};
-  Map<AnimationType, Animation<double>> _animations = {};
+  final Map<AnimationType, AnimationController> _controllers = {};
+  final Map<AnimationType, Animation<double>> _animations = {};
 
   // Blink controllers (separate from effect animations)
   AnimationController? _textBlinkController;
@@ -129,7 +129,9 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     _backgroundBlinkController?.dispose();
 
     // Dispose all effect controllers
-    _controllers.values.forEach((controller) => controller.dispose());
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -168,10 +170,10 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
 
   void _updateEffectAnimation(AnimationType type) {
     // Stop all effect animations first
-    _controllers.values.forEach((controller) {
+    for (var controller in _controllers.values) {
       controller.stop();
       controller.reset();
-    });
+    }
 
     // Start the selected animation
     switch (type) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:led_text/models/state_cubit.dart';
+import 'package:led_text/widgets/button_widget.dart';
 import 'package:led_text/widgets/color_picker_widget.dart';
 
 class GradientWidget extends StatelessWidget {
@@ -18,15 +19,15 @@ class GradientWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Enable Gradient',
-                  style: TextStyle(color: Colors.black, fontSize: 16),
+                  'Enable Gradient:',
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 Switch(
                   value: state.isGradientEnabled,
                   onChanged: (value) {
                     context.read<LEDTextCubit>().updateGradientEnabled(value);
                   },
-                  activeColor: Colors.blue,
+                  activeThumbColor: Colors.blue,
                 ),
               ],
             ),
@@ -36,32 +37,35 @@ class GradientWidget extends StatelessWidget {
               // Gradient Direction
               Text(
                 'Gradient Direction',
-                style: TextStyle(color: Colors.black, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
               SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDirectionButton(
-                    context,
-                    'Horizontal',
-                    Icons.arrow_forward,
-                    0,
-                    state.gradientDirection == 0,
+                  DirectionButton(
+                    label: 'Horizontal',
+                    icon: Icons.arrow_forward,
+                    onTap: () {
+                      context.read<LEDTextCubit>().updateGradientDirection(0);
+                    },
+                    isSelected: state.gradientDirection == 0,
                   ),
-                  _buildDirectionButton(
-                    context,
-                    'Vertical',
-                    Icons.arrow_downward,
-                    1,
-                    state.gradientDirection == 1,
+                  DirectionButton(
+                    label: 'Vertical',
+                    icon: Icons.arrow_downward,
+                    onTap: () {
+                      context.read<LEDTextCubit>().updateGradientDirection(1);
+                    },
+                    isSelected: state.gradientDirection == 1,
                   ),
-                  _buildDirectionButton(
-                    context,
-                    'Diagonal',
-                    Icons.call_missed_outgoing,
-                    2,
-                    state.gradientDirection == 2,
+                  DirectionButton(
+                    label: 'Diagonal',
+                    icon: Icons.call_missed_outgoing,
+                    onTap: () {
+                      context.read<LEDTextCubit>().updateGradientDirection(2);
+                    },
+                    isSelected: state.gradientDirection == 2,
                   ),
                 ],
               ),
@@ -107,35 +111,6 @@ class GradientWidget extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildDirectionButton(
-    BuildContext context,
-    String label,
-    IconData icon,
-    int direction,
-    bool isSelected, {
-    IconData? customIcon,
-  }) {
-    return ElevatedButton(
-      onPressed: () {
-        context.read<LEDTextCubit>().updateGradientDirection(direction);
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[700],
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(customIcon ?? icon, size: 16),
-          SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10)),
-        ],
-      ),
     );
   }
 

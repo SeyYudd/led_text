@@ -8,6 +8,7 @@ import 'package:led_text/widgets/switch_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/build_section.dart';
+import '../widgets/button_widget.dart';
 import '../widgets/color_picker_widget.dart';
 import '../utils/animation_utils.dart';
 import '../widgets/slider_widget.dart';
@@ -37,7 +38,6 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
     super.initState();
     _setPortraitMode();
 
-    // Pastikan semua state dimulai dengan benar saat aplikasi pertama kali masuk
     _isLocked = false;
     _isVisible = false;
     _showAdvancedSettings = false;
@@ -114,7 +114,6 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
               });
               return GestureDetector(
                 onTap: () {
-                  // Reset timer ketika ada aktivitas di layar
                   if (_isLocked) {
                     _resetLockTimer();
                   } else {
@@ -144,11 +143,9 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                   setState(() {
                     _isLocked = !_isLocked;
                     if (_isLocked) {
-                      // Mulai timer ketika lock aktif
                       _startLockTimer();
                       _showAdvancedSettings = false;
                     } else {
-                      // Cancel timer ketika unlock
                       _cancelLockTimer();
                       _showAdvancedSettings = false;
                     }
@@ -170,163 +167,156 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
             ),
           ),
 
-          !_isVisible
-              ? Visibility(
-                  visible: !_isLocked,
-                  child: BlocBuilder<LEDTextCubit, LEDTextState>(
-                    builder: (context, state) {
-                      return SafeArea(
-                        child: DraggableScrollableSheet(
-                          initialChildSize: _showAdvancedSettings ? 0.6 : 0.2,
-                          minChildSize: _showAdvancedSettings ? 0.6 : 0.2,
-                          maxChildSize: _showAdvancedSettings ? 0.8 : 0.2,
-                          controller: _scrollController,
-                          builder: (context, scrollController) {
-                            return Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.blueAccent.shade100.withValues(alpha: .3),
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(20),
-                                  topRight: Radius.circular(20),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                controller: scrollController,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    // Reset timer ketika ada aktivitas di controls
-                                    _resetLockTimer();
-                                  },
-                                  child: Column(
-                                    spacing: 16,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      //section atas
-                                      sectionAtas(),
-                                      //section bawah
-                                      sectionBawah(state, context),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                )
-              : SizedBox(),
+          if (!_isVisible)
+            Visibility(
+              visible: !_isLocked,
+              child: BlocBuilder<LEDTextCubit, LEDTextState>(
+                builder: (context, state) {
+                  return SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (_showAdvancedSettings) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Spacer(),
+                              sectionAtas(),
+                              Flexible(child: sectionBawah(state, context)),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(child: SizedBox()),
+                              sectionAtas(),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Row sectionAtas() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => _resetLockTimer(),
-            child: TextField(
-              controller: _textController,
-              focusNode: _textFocusNode,
-              decoration: InputDecoration(
-                hintText: AppConstants.inputTextHint,
-                hintStyle: TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.grey[800],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+  Widget sectionAtas() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _resetLockTimer(),
+              child: TextField(
+                controller: _textController,
+                focusNode: _textFocusNode,
+                maxLength: 100,
+                decoration: InputDecoration(
+                  hintText: AppConstants.inputTextHint,
+                  hintStyle: TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.grey[800],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: EdgeInsets.all(16),
                 ),
-                contentPadding: EdgeInsets.all(16),
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textInputAction: TextInputAction.done,
+                onChanged: (value) {
+                  final upper = value.toUpperCase();
+                  if (value != upper) {
+                    final selection = _textController.selection;
+                    _textController.value = TextEditingValue(
+                      text: upper,
+                      selection: selection,
+                    );
+                  }
+                },
+                onSubmitted: (value) => _updateText(),
               ),
-              style: TextStyle(color: Colors.white, fontSize: 16),
-              textInputAction: TextInputAction.done,
-              onChanged: (value) {
-                final upper = value.toUpperCase();
-                if (value != upper) {
-                  final selection = _textController.selection;
-                  _textController.value = TextEditingValue(
-                    text: upper,
-                    selection: selection,
-                  );
-                }
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(left: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              onPressed: () {
+                _resetLockTimer(); // Reset timer ketika expand button diklik
+                setState(() {
+                  _showAdvancedSettings = !_showAdvancedSettings;
+                  if (!_showAdvancedSettings) {
+                    _scrollController.animateTo(
+                      0.3,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                });
               },
-              onSubmitted: (value) => _updateText(),
+              icon: Icon(
+                !_showAdvancedSettings ? Icons.expand_less : Icons.expand_more,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
-        Container(
-          margin: EdgeInsets.only(left: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey[800],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            onPressed: () {
-              _resetLockTimer(); // Reset timer ketika expand button diklik
-              setState(() {
-                _showAdvancedSettings = !_showAdvancedSettings;
-                if (!_showAdvancedSettings) {
-                  _scrollController.animateTo(
-                    0.3,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              });
-            },
-            icon: Icon(
-              _showAdvancedSettings ? Icons.more : Icons.expand_more,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Visibility sectionBawah(LEDTextState state, BuildContext context) {
-    return Visibility(
-      visible: _showAdvancedSettings,
+  Widget sectionBawah(LEDTextState state, BuildContext context) {
+    return AnimatedContainer(
+      height: MediaQuery.of(context).size.height * 0.4,
+      duration: Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent.shade100.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
       child: GestureDetector(
         onTap: () => _resetLockTimer(),
-        child: Column(
-          spacing: 16,
+        child: ListView(
+          shrinkWrap: true,
           children: [
             buildSection(
               AppConstants.arahDanAnimasi,
               Column(
-                spacing: 10,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      CuteDirectionButton(
+                      DirectionButton(
                         icon: Icons.arrow_back,
                         label: 'Kiri',
-                        color: Colors.pinkAccent.shade100,
                         isSelected: state.scrollDirection == 0,
                         onTap: () => context
                             .read<LEDTextCubit>()
                             .updateScrollDirection(0),
                       ),
-                      CuteDirectionButton(
+                      DirectionButton(
                         icon: Icons.arrow_upward,
                         label: 'Atas',
-                        color: Colors.lightBlueAccent.shade100,
                         isSelected: state.scrollDirection == 1,
                         onTap: () => context
                             .read<LEDTextCubit>()
                             .updateScrollDirection(1),
                       ),
-                      CuteDirectionButton(
+                      DirectionButton(
                         icon: Icons.pause,
                         label: 'Diam',
-                        color: Colors.amberAccent.shade100,
                         isSelected: state.scrollDirection == 2,
                         onTap: () => context
                             .read<LEDTextCubit>()
@@ -358,20 +348,19 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
             buildSection(
               AppConstants.fontSection,
               Column(
-                spacing: 16,
                 children: [
                   Row(
-                    spacing: 10,
                     children: [
                       Text(
                         AppConstants.fontLabel,
-                        style: TextStyle(color: Colors.black),
+                        style: TextStyle(color: Colors.white),
                       ),
+                      SizedBox(width: 10),
                       Expanded(
                         child: DropdownButton<String>(
                           value: state.selectedFont,
-                          dropdownColor: Colors.black,
-                          style: TextStyle(color: Colors.black),
+                          dropdownColor: Colors.blueGrey,
+                          style: TextStyle(color: Colors.white),
                           isExpanded: true,
                           items: AppConstants.fontOptions
                               .map(
@@ -394,7 +383,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                     label: AppConstants.ukuranLabel,
                     value: state.fontSize,
                     min: 20.0,
-                    max: 400.0,
+                    max: 326.0,
                     onChanged: (value) =>
                         context.read<LEDTextCubit>().updateFontSize(value),
                   ),
@@ -424,14 +413,15 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                 ],
               ),
             ),
-            _buildBlinkSection(state),
+            if (state.isGradientEnabled == false)
+              _buildBlinkSection(state),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.pinkAccent.shade100.withOpacity(0.7),
+                    color: Colors.pinkAccent.shade100.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -467,7 +457,9 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.lightBlueAccent.shade100.withOpacity(0.7),
+                      color: Colors.lightBlueAccent.shade100.withValues(
+                        alpha: 0.7,
+                      ),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -500,17 +492,12 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
     bool isSelected = state.currentAnimation == type;
     String label = getAnimationLabel(type);
 
-    return ElevatedButton(
-      onPressed: () {
+    return DirectionButton(
+      label: label,
+      onTap: () {
         context.read<LEDTextCubit>().updateCurrentAnimation(type);
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[700],
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 11)),
+      isSelected: isSelected,
     );
   }
 
@@ -520,12 +507,13 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
       Column(
         spacing: 10,
         children: [
-          SwitchText(
-            label: AppConstants.textBlink,
-            value: state.isTextBlinking,
-            onChanged: (value) =>
-                context.read<LEDTextCubit>().updateTextBlinking(value),
-          ),
+          if (state.scrollDirection != 2)
+            SwitchText(
+              label: AppConstants.textBlink,
+              value: state.isTextBlinking,
+              onChanged: (value) =>
+                  context.read<LEDTextCubit>().updateTextBlinking(value),
+            ),
           if (state.isTextBlinking)
             SliderWidget(
               label: AppConstants.textBlinkSpeed,
@@ -563,66 +551,6 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
             ],
           ],
         ],
-      ),
-    );
-  }
-}
-
-class CuteDirectionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const CuteDirectionButton({
-    Key? key,
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.isSelected,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.4),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : [],
-          border: Border.all(
-            color: isSelected ? Colors.white : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -17,8 +17,8 @@ class SwitchText extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.black)),
-        Switch(value: value, onChanged: onChanged, activeColor: Colors.blue),
+        Text(label, style: TextStyle(color: Colors.white, fontSize: 14)),
+        Switch(value: value, onChanged: onChanged, activeThumbColor: Colors.blue),
       ],
     );
   }
