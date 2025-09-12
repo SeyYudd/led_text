@@ -27,7 +27,7 @@ class GradientWidget extends StatelessWidget {
                   onChanged: (value) {
                     context.read<LEDTextCubit>().updateGradientEnabled(value);
                   },
-                  activeThumbColor: Colors.blue,
+                  activeColor: Colors.blue,
                 ),
               ],
             ),

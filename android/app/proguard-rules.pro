@@ -18,6 +18,17 @@
 -keep class com.google.android.play.core.tasks.** { *; }
 -dontwarn com.google.android.play.core.**
 
+# Jangan hapus resource font
+-keep class com.google.android.gms.** { *; }
+-keep class com.google.android.material.** { *; }
+-keep class com.google.fonts.** { *; }
+-keep class dev.fluttercommunity.plus.** { *; }
+-keep class com.google.** { *; }
+-keep class org.jetbrains.** { *; }
+
+# Khusus Google Fonts
+-keep class com.google.fonts.** { *; }
+
 # Model classes (ganti com.yourpackage dengan package kamu)
 -keep class com.kakasey.digitaltextlumi.model.** { *; }
 
