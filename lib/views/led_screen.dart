@@ -1,4 +1,4 @@
-// Enhanced LEDDisplayScreen with Animation Effects
+// Enhanced LEDDisplayScreen with Animation Effects - Optimized
 import 'package:auto_orientation/auto_orientation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:led_text/models/state_cubit.dart';
 import 'package:led_text/widgets/text_scrolling_widget.dart';
 import 'dart:math' as math;
-
-enum AnimationType { none, zoom, rotate, wave, bounce, flicker }
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:led_text/utils/animation_utils.dart';
 
 class LEDDisplayScreen extends StatefulWidget {
   final bool isFirst;
@@ -19,25 +20,15 @@ class LEDDisplayScreen extends StatefulWidget {
 
 class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     with TickerProviderStateMixin {
+  // Animation Controllers Map for cleaner management
+  final Map<AnimationType, AnimationController> _controllers = {};
+  final Map<AnimationType, Animation<double>> _animations = {};
+
+  // Blink controllers (separate from effect animations)
   AnimationController? _textBlinkController;
   AnimationController? _backgroundBlinkController;
-  AnimationController? _zoomController;
-  AnimationController? _rotateController;
-  AnimationController? _typewriterController;
-  AnimationController? _waveController;
-  AnimationController? _bounceController;
-  AnimationController? _flickerController;
-
   Animation<double>? _textBlinkAnimation;
   Animation<double>? _backgroundBlinkAnimation;
-  Animation<double>? _zoomAnimation;
-  Animation<double>? _rotateAnimation;
-  Animation<double>? _waveAnimation;
-  Animation<double>? _bounceAnimation;
-  Animation<double>? _flickerAnimation;
-
-  AnimationType _currentAnimation = AnimationType.none;
-  bool _showControls = false;
 
   @override
   void initState() {
@@ -46,7 +37,7 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
   }
 
   void _initializeAnimations() {
-    // Existing animations
+    // Initialize blink animations
     _textBlinkController = AnimationController(
       duration: Duration(milliseconds: 500),
       vsync: this,
@@ -59,7 +50,6 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     _textBlinkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _textBlinkController!, curve: Curves.linear),
     );
-
     _backgroundBlinkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _backgroundBlinkController!,
@@ -67,58 +57,69 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
       ),
     );
 
-    // New animation controllers
-    _zoomController = AnimationController(
-      duration: Duration(seconds: 2),
-      vsync: this,
-    );
-    _zoomAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _zoomController!, curve: Curves.easeInOut),
-    );
-
-    _rotateController = AnimationController(
-      duration: Duration(seconds: 3),
-      vsync: this,
-    );
-    _rotateAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: _rotateController!, curve: Curves.linear),
-    );
-
-    _typewriterController = AnimationController(
-      duration: Duration(seconds: 3),
-      vsync: this,
-    );
-
-    _waveController = AnimationController(
-      duration: Duration(seconds: 2),
-      vsync: this,
-    );
-    _waveAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * math.pi,
-    ).animate(CurvedAnimation(parent: _waveController!, curve: Curves.linear));
-
-    _bounceController = AnimationController(
-      duration: Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _bounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _bounceController!, curve: Curves.bounceOut),
-    );
-
-    _flickerController = AnimationController(
-      duration: Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _flickerAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _flickerController!, curve: Curves.easeInOut),
-    );
+    // Initialize effect animation controllers
+    _initializeEffectControllers();
 
     // Start animations with current state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = context.read<LEDTextCubit>().state;
       _updateBlinkAnimations(state);
+      _updateEffectAnimation(state.currentAnimation);
     });
+  }
+
+  void _initializeEffectControllers() {
+    // Zoom animation
+    _controllers[AnimationType.zoom] = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    );
+    _animations[AnimationType.zoom] = Tween<double>(begin: 0.8, end: 1.2)
+        .animate(
+          CurvedAnimation(
+            parent: _controllers[AnimationType.zoom]!,
+            curve: Curves.easeInOut,
+          ),
+        );
+
+    // Rotate animation
+    _controllers[AnimationType.rotate] = AnimationController(
+      duration: Duration(seconds: 3),
+      vsync: this,
+    );
+    _animations[AnimationType.rotate] =
+        Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
+          CurvedAnimation(
+            parent: _controllers[AnimationType.rotate]!,
+            curve: Curves.linear,
+          ),
+        );
+
+    // Wave animation
+    _controllers[AnimationType.wave] = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    );
+    _animations[AnimationType.wave] =
+        Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
+          CurvedAnimation(
+            parent: _controllers[AnimationType.wave]!,
+            curve: Curves.linear,
+          ),
+        );
+
+    // Flicker animation
+    _controllers[AnimationType.flicker] = AnimationController(
+      duration: Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _animations[AnimationType.flicker] = Tween<double>(begin: 0.3, end: 1.0)
+        .animate(
+          CurvedAnimation(
+            parent: _controllers[AnimationType.flicker]!,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   @override
@@ -126,12 +127,11 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     _exitFullScreen();
     _textBlinkController?.dispose();
     _backgroundBlinkController?.dispose();
-    _zoomController?.dispose();
-    _rotateController?.dispose();
-    _typewriterController?.dispose();
-    _waveController?.dispose();
-    _bounceController?.dispose();
-    _flickerController?.dispose();
+
+    // Dispose all effect controllers
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -141,6 +141,7 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
   }
 
   void _updateBlinkAnimations(LEDTextState state) {
+    // Text blink logic
     if (state.isTextBlinking) {
       _textBlinkController?.duration = Duration(
         milliseconds: (1000 / state.textBlinkSpeed).round(),
@@ -153,6 +154,7 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
       _textBlinkController?.reset();
     }
 
+    // Background blink logic
     if (state.isBackgroundBlinking) {
       _backgroundBlinkController?.duration = Duration(
         milliseconds: (1000 / state.backgroundBlinkSpeed).round(),
@@ -166,33 +168,25 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     }
   }
 
-  void _startAnimation(AnimationType type) {
-    // Stop all animations first
-    _stopAllAnimations();
+  void _updateEffectAnimation(AnimationType type) {
+    // Stop all effect animations first
+    for (var controller in _controllers.values) {
+      controller.stop();
+      controller.reset();
+    }
 
-    setState(() {
-      _currentAnimation = type;
-    });
-
+    // Start the selected animation
     switch (type) {
       case AnimationType.zoom:
-        _zoomController?.repeat(reverse: true);
+        _controllers[type]?.repeat(reverse: true);
         break;
       case AnimationType.rotate:
-        _rotateController?.repeat();
+        _controllers[type]?.repeat();
+        break;
+      case AnimationType.wave:
+        _controllers[type]?.repeat();
         break;
 
-      case AnimationType.wave:
-        _waveController?.repeat();
-        break;
-      case AnimationType.bounce:
-        _bounceController?.forward().then((_) {
-          Future.delayed(Duration(milliseconds: 500), () {
-            _bounceController?.reset();
-            _bounceController?.forward();
-          });
-        });
-        break;
       case AnimationType.flicker:
         _startFlickerAnimation();
         break;
@@ -202,27 +196,22 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
   }
 
   void _startFlickerAnimation() {
-    _flickerController?.forward().then((_) {
-      _flickerController?.reverse().then((_) {
-        Future.delayed(
-          Duration(milliseconds: math.Random().nextInt(200) + 50),
-          () {
-            if (_currentAnimation == AnimationType.flicker) {
-              _startFlickerAnimation();
-            }
-          },
-        );
+    final controller = _controllers[AnimationType.flicker];
+    controller?.forward().then((_) {
+      controller.reverse().then((_) {
+        if (mounted) {
+          Future.delayed(
+            Duration(milliseconds: math.Random().nextInt(200) + 50),
+            () {
+              final currentState = context.read<LEDTextCubit>().state;
+              if (currentState.currentAnimation == AnimationType.flicker) {
+                _startFlickerAnimation();
+              }
+            },
+          );
+        }
       });
     });
-  }
-
-  void _stopAllAnimations() {
-    _zoomController?.stop();
-    _rotateController?.stop();
-    _typewriterController?.stop();
-    _waveController?.stop();
-    _bounceController?.stop();
-    _flickerController?.stop();
   }
 
   String _getFontFamily(String font) {
@@ -238,95 +227,227 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
     }
   }
 
-  Widget _buildAnimatedText(LEDTextState state, Color currentFontColor) {
-    String displayText = state.currentText;
+  LinearGradient _buildGradient(LEDTextState state) {
+    Alignment begin, end;
 
-    Widget textWidget = Text(
-      displayText,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        fontSize: state.fontSize,
-        color: currentFontColor,
-        fontFamily: _getFontFamily(state.selectedFont),
-        fontWeight: FontWeight.bold,
-      ),
-    );
-
-    switch (_currentAnimation) {
-      case AnimationType.zoom:
-        if (_zoomAnimation != null) {
-          return AnimatedBuilder(
-            animation: _zoomAnimation!,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _zoomAnimation!.value,
-                child: textWidget,
-              );
-            },
-          );
-        }
+    switch (state.gradientDirection) {
+      case 0: // Horizontal
+        begin = Alignment.centerLeft;
+        end = Alignment.centerRight;
         break;
-      case AnimationType.rotate:
-        if (_rotateAnimation != null) {
-          return AnimatedBuilder(
-            animation: _rotateAnimation!,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _rotateAnimation!.value,
-                child: textWidget,
-              );
-            },
-          );
-        }
+      case 1: // Vertical
+        begin = Alignment.topCenter;
+        end = Alignment.bottomCenter;
         break;
-      case AnimationType.wave:
-        if (_waveAnimation != null) {
-          return AnimatedBuilder(
-            animation: _waveAnimation!,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, math.sin(_waveAnimation!.value) * 20),
-                child: textWidget,
-              );
-            },
-          );
-        }
-        break;
-      case AnimationType.bounce:
-        if (_bounceAnimation != null) {
-          return AnimatedBuilder(
-            animation: _bounceAnimation!,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, -50 * _bounceAnimation!.value),
-                child: Transform.scale(
-                  scale: 0.8 + (0.2 * _bounceAnimation!.value),
-                  child: textWidget,
-                ),
-              );
-            },
-          );
-        }
-        break;
-      case AnimationType.flicker:
-        if (_flickerAnimation != null) {
-          return AnimatedBuilder(
-            animation: _flickerAnimation!,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _flickerAnimation!.value,
-                child: textWidget,
-              );
-            },
-          );
-        }
+      case 2: // Diagonal
+        begin = Alignment.topLeft;
+        end = Alignment.bottomRight;
         break;
       default:
-        break;
+        begin = Alignment.topCenter;
+        end = Alignment.bottomCenter;
     }
 
-    return textWidget;
+    return LinearGradient(
+      begin: begin,
+      end: end,
+      colors: [state.gradientStartColor, state.gradientEndColor],
+    );
+  }
+
+  Widget _buildAnimatedText(LEDTextState state, Color currentFontColor) {
+    TextStyle style;
+    switch (state.selectedFont) {
+      case 'Impact':
+        style = GoogleFonts.getFont(
+          'Impact',
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Roboto':
+        style = GoogleFonts.roboto(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Lato':
+        style = GoogleFonts.lato(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Oswald':
+        style = GoogleFonts.oswald(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Montserrat':
+        style = GoogleFonts.montserrat(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Poppins':
+        style = GoogleFonts.poppins(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Raleway':
+        style = GoogleFonts.raleway(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Merriweather':
+        style = GoogleFonts.merriweather(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Open Sans':
+        style = GoogleFonts.openSans(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Nunito':
+        style = GoogleFonts.nunito(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Quicksand':
+        style = GoogleFonts.quicksand(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Bebas Neue':
+        style = GoogleFonts.bebasNeue(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Dancing Script':
+        style = GoogleFonts.dancingScript(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Pacifico':
+        style = GoogleFonts.pacifico(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Indie Flower':
+        style = GoogleFonts.indieFlower(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Orbitron':
+        style = GoogleFonts.orbitron(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Anton':
+        style = GoogleFonts.anton(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Bangers':
+        style = GoogleFonts.bangers(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Monospace':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Serif':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'serif',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      case 'Sans-serif':
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontFamily: 'sans-serif',
+          fontWeight: FontWeight.bold,
+        );
+        break;
+      default:
+        style = TextStyle(
+          fontSize: state.fontSize,
+          color: currentFontColor,
+          fontWeight: FontWeight.bold,
+        );
+    }
+    Widget textWidget = RotatedBox(
+      quarterTurns: 1,
+      child: AutoSizeText(state.currentText, style: style),
+    );
+
+    final animation = _animations[state.currentAnimation];
+    if (animation == null) return textWidget;
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        switch (state.currentAnimation) {
+          case AnimationType.zoom:
+            return Transform.scale(scale: animation.value, child: textWidget);
+
+          case AnimationType.rotate:
+            return Transform.rotate(angle: animation.value, child: textWidget);
+
+          case AnimationType.wave:
+            return Transform.translate(
+              offset: Offset(0, math.sin(animation.value) * 20),
+              child: textWidget,
+            );
+
+          case AnimationType.flicker:
+            return Opacity(opacity: animation.value, child: textWidget);
+
+          default:
+            return textWidget;
+        }
+      },
+    );
   }
 
   @override
@@ -336,188 +457,63 @@ class _LEDDisplayScreenState extends State<LEDDisplayScreen>
       body: BlocListener<LEDTextCubit, LEDTextState>(
         listener: (context, state) {
           _updateBlinkAnimations(state);
+          _updateEffectAnimation(state.currentAnimation);
 
-          if (state.keepScreenOn) {
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-          }
+          // Hapus logic keepScreenOn
         },
         child: BlocBuilder<LEDTextCubit, LEDTextState>(
           builder: (context, state) {
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _showControls = !_showControls;
-                });
-              },
+            return AnimatedBuilder(
+              animation: Listenable.merge([
+                _textBlinkAnimation ?? const AlwaysStoppedAnimation(0.0),
+                _backgroundBlinkAnimation ?? const AlwaysStoppedAnimation(0.0),
+              ]),
+              builder: (context, child) {
+                // Calculate current colors with blink effects
+                Color currentBackgroundColor = state.backgroundColor;
+                Color currentFontColor = state.fontColor;
 
-              child: Stack(
-                children: [
-                  // Main Display
-                  AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _textBlinkAnimation ?? const AlwaysStoppedAnimation(0.0),
-                      _backgroundBlinkAnimation ??
-                          const AlwaysStoppedAnimation(0.0),
-                    ]),
-                    builder: (context, child) {
-                      Color currentBackgroundColor = state.backgroundColor;
-                      Color currentFontColor = state.fontColor;
+                if (state.isBackgroundBlinking &&
+                    _backgroundBlinkAnimation != null) {
+                  currentBackgroundColor = Color.lerp(
+                    state.backgroundColor,
+                    state.blinkBackgroundColor,
+                    _backgroundBlinkAnimation!.value,
+                  )!;
+                }
 
-                      if (state.isBackgroundBlinking &&
-                          _backgroundBlinkAnimation != null) {
-                        currentBackgroundColor = Color.lerp(
-                          state.backgroundColor,
-                          state.blinkBackgroundColor,
-                          _backgroundBlinkAnimation!.value,
-                        )!;
-                      }
+                if (state.isTextBlinking && _textBlinkAnimation != null) {
+                  currentFontColor = state.fontColor.withValues(
+                    alpha: 1.0 - _textBlinkAnimation!.value,
+                  );
+                }
 
-                      if (state.isTextBlinking && _textBlinkAnimation != null) {
-                        currentFontColor = state.fontColor.withValues(
-                          alpha: 1.0 - _textBlinkAnimation!.value,
-                        );
-                      }
-
-                      return Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        color: currentBackgroundColor,
-                        child: Center(
-                          child: state.scrollDirection == 2
-                              ? _buildAnimatedText(state, currentFontColor)
-                              : TextScrollingWidget(
-                                  currentFontColor: currentFontColor,
-                                  state: state,
-                                  fontFamily: _getFontFamily(
-                                    state.selectedFont,
-                                  ),
-                                ),
-                        ),
-                      );
-                    },
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: state.isGradientEnabled
+                        ? null
+                        : currentBackgroundColor,
+                    gradient: state.isGradientEnabled
+                        ? _buildGradient(state)
+                        : null,
                   ),
-
-                  // Animation Controls
-                  if (_showControls)
-                    Positioned(
-                      top: 50,
-                      left: 20,
-                      right: 20,
-                      child: Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Animation Effects',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _showControls = !_showControls;
-                                    });
-                                  },
-                                  icon: Icon(Icons.close),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 16),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                _buildAnimationButton(
-                                  'None',
-                                  AnimationType.none,
-                                ),
-                                _buildAnimationButton(
-                                  'Zoom',
-                                  AnimationType.zoom,
-                                ),
-                                _buildAnimationButton(
-                                  'Rotate',
-                                  AnimationType.rotate,
-                                ),
-
-                                _buildAnimationButton(
-                                  'Wave',
-                                  AnimationType.wave,
-                                ),
-                                _buildAnimationButton(
-                                  'Bounce',
-                                  AnimationType.bounce,
-                                ),
-                                _buildAnimationButton(
-                                  'Flicker',
-                                  AnimationType.flicker,
-                                ),
-                                if (!widget.isFirst)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red[700],
-                                      foregroundColor: Colors.white,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      "Keluar",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Tap: Toggle Controls ',
-                              style: TextStyle(
-                                color: Colors.white60,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                  child: Center(
+                    child: state.scrollDirection == 2
+                        ? _buildAnimatedText(state, currentFontColor)
+                        : TextScrollingWidget(
+                            currentFontColor: currentFontColor,
+                            state: state,
+                            selectedFont: state.selectedFont,
+                          ),
+                  ),
+                );
+              },
             );
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildAnimationButton(String label, AnimationType type) {
-    bool isSelected = _currentAnimation == type;
-    return ElevatedButton(
-      onPressed: () => _startAnimation(type),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[700],
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 12)),
     );
   }
 }

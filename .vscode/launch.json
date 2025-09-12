@@ -7,17 +7,20 @@
         
         {
             "name": "led_text",
+            "program": "lib/main.dart",
             "request": "launch",
             "type": "dart"
         },
         {
             "name": "led_text (profile mode)",
+            "program": "lib/main.dart",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
             "name": "led_text (release mode)",
+            "program": "lib/main.dart",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

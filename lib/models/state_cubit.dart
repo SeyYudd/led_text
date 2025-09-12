@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:led_text/utils/animation_utils.dart';
 
 class LEDTextState {
   final String currentText;
@@ -16,25 +17,35 @@ class LEDTextState {
   final Color fontColor;
   final Color backgroundColor;
   final Color blinkBackgroundColor;
-  final bool keepScreenOn;
   final bool isScrolling;
+  final AnimationType currentAnimation;
+  // Gradient properties
+  final bool isGradientEnabled;
+  final Color gradientStartColor;
+  final Color gradientEndColor;
+  final int gradientDirection; // 0: horizontal, 1: vertical, 2: diagonal
 
   LEDTextState({
     this.currentText = 'LED Text Bergulir',
     this.textHistory = const [],
-    this.scrollDirection = 0,
+    this.scrollDirection = 1,
     this.scrollSpeed = 50.0,
+    this.currentAnimation = AnimationType.none,
     this.isTextBlinking = false,
     this.textBlinkSpeed = 1.0,
     this.isBackgroundBlinking = false,
     this.backgroundBlinkSpeed = 1.0,
     this.selectedFont = 'Default',
     this.fontSize = 24.0,
-    this.fontColor = Colors.green,
-    this.backgroundColor = Colors.black,
+    this.fontColor = Colors.black,
+    this.backgroundColor = Colors.white,
     this.blinkBackgroundColor = Colors.red,
-    this.keepScreenOn = false,
     this.isScrolling = false,
+    // Gradient defaults
+    this.isGradientEnabled = false,
+    this.gradientStartColor = Colors.black,
+    this.gradientEndColor = Colors.blue,
+    this.gradientDirection = 1, // vertical by default
   });
 
   LEDTextState copyWith({
@@ -43,6 +54,7 @@ class LEDTextState {
     int? scrollDirection,
     double? scrollSpeed,
     bool? isTextBlinking,
+    AnimationType? currentAnimation,
     double? textBlinkSpeed,
     bool? isBackgroundBlinking,
     double? backgroundBlinkSpeed,
@@ -51,12 +63,17 @@ class LEDTextState {
     Color? fontColor,
     Color? backgroundColor,
     Color? blinkBackgroundColor,
-    bool? keepScreenOn,
     bool? isScrolling,
+    // Gradient parameters
+    bool? isGradientEnabled,
+    Color? gradientStartColor,
+    Color? gradientEndColor,
+    int? gradientDirection,
   }) {
     return LEDTextState(
       currentText: currentText ?? this.currentText,
       textHistory: textHistory ?? this.textHistory,
+      currentAnimation: currentAnimation ?? this.currentAnimation,
       scrollDirection: scrollDirection ?? this.scrollDirection,
       scrollSpeed: scrollSpeed ?? this.scrollSpeed,
       isTextBlinking: isTextBlinking ?? this.isTextBlinking,
@@ -68,8 +85,12 @@ class LEDTextState {
       fontColor: fontColor ?? this.fontColor,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       blinkBackgroundColor: blinkBackgroundColor ?? this.blinkBackgroundColor,
-      keepScreenOn: keepScreenOn ?? this.keepScreenOn,
       isScrolling: isScrolling ?? this.isScrolling,
+      // Gradient properties
+      isGradientEnabled: isGradientEnabled ?? this.isGradientEnabled,
+      gradientStartColor: gradientStartColor ?? this.gradientStartColor,
+      gradientEndColor: gradientEndColor ?? this.gradientEndColor,
+      gradientDirection: gradientDirection ?? this.gradientDirection,
     );
   }
 }
@@ -82,34 +103,53 @@ class LEDTextCubit extends Cubit<LEDTextState> {
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final historyJson = prefs.getStringList('text_history') ?? [];
-    final currentText = prefs.getString('current_text') ?? 'LED Text Bergulir';
+    final currentText = prefs.getString('current_text') ?? 'Disini Isi Teks Kamu...';
+    final animationString = prefs.getString('current_animation');
+
+    AnimationType currentAnimation = AnimationType.none;
+    if (animationString != null) {
+      currentAnimation = AnimationType.values.firstWhere(
+        (e) => e.toString() == 'AnimationType.$animationString',
+        orElse: () => AnimationType.none,
+      );
+    }
 
     emit(
       state.copyWith(
         currentText: currentText,
         textHistory: historyJson,
-        scrollDirection: prefs.getInt('scroll_direction') ?? 0,
-        scrollSpeed: prefs.getDouble('scroll_speed') ?? 50.0,
+        currentAnimation: currentAnimation,
+        scrollDirection: prefs.getInt('scroll_direction') ?? 1,
+        scrollSpeed: prefs.getDouble('scroll_speed') ?? 125.0,
         isTextBlinking: prefs.getBool('is_text_blinking') ?? false,
         textBlinkSpeed: prefs.getDouble('text_blink_speed') ?? 1.0,
         isBackgroundBlinking: prefs.getBool('is_background_blinking') ?? false,
         backgroundBlinkSpeed: prefs.getDouble('background_blink_speed') ?? 1.0,
         selectedFont: prefs.getString('selected_font') ?? 'Default',
-        fontSize: prefs.getDouble('font_size') ?? 24.0,
-        fontColor: Color(prefs.getInt('font_color') ?? Colors.green.value),
+        fontSize: prefs.getDouble('font_size') ?? 96.0,
+        fontColor: Color(prefs.getInt('font_color') ?? Colors.black.value),
         backgroundColor: Color(
-          prefs.getInt('background_color') ?? Colors.black.value,
+          prefs.getInt('background_color') ?? Colors.white.value,
         ),
         blinkBackgroundColor: Color(
           prefs.getInt('blink_background_color') ?? Colors.red.value,
         ),
-        keepScreenOn: prefs.getBool('keep_screen_on') ?? false,
+        // Gradient properties
+        isGradientEnabled: prefs.getBool('is_gradient_enabled') ?? false,
+        gradientStartColor: Color(
+          prefs.getInt('gradient_start_color') ?? Colors.black.value,
+        ),
+        gradientEndColor: Color(
+          prefs.getInt('gradient_end_color') ?? Colors.blue.value,
+        ),
+        gradientDirection: prefs.getInt('gradient_direction') ?? 1,
       ),
     );
   }
 
   Future<void> _saveData() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('current_animation', state.currentAnimation.name);
     await prefs.setStringList('text_history', state.textHistory);
     await prefs.setString('current_text', state.currentText);
     await prefs.setInt('scroll_direction', state.scrollDirection);
@@ -126,7 +166,16 @@ class LEDTextCubit extends Cubit<LEDTextState> {
       'blink_background_color',
       state.blinkBackgroundColor.value,
     );
-    await prefs.setBool('keep_screen_on', state.keepScreenOn);
+    // Gradient properties
+    await prefs.setBool('is_gradient_enabled', state.isGradientEnabled);
+    await prefs.setInt('gradient_start_color', state.gradientStartColor.value);
+    await prefs.setInt('gradient_end_color', state.gradientEndColor.value);
+    await prefs.setInt('gradient_direction', state.gradientDirection);
+  }
+
+  void updateCurrentAnimation(AnimationType animation) {
+    emit(state.copyWith(currentAnimation: animation));
+    _saveData();
   }
 
   void updateText(String text) {
@@ -215,16 +264,31 @@ class LEDTextCubit extends Cubit<LEDTextState> {
     _saveData();
   }
 
-  void updateKeepScreenOn(bool keepOn) {
-    emit(state.copyWith(keepScreenOn: keepOn));
-    _saveData();
-  }
-
   void startScrolling() {
     emit(state.copyWith(isScrolling: true));
   }
 
   void stopScrolling() {
     emit(state.copyWith(isScrolling: false));
+  }
+
+  void updateGradientEnabled(bool enabled) {
+    emit(state.copyWith(isGradientEnabled: enabled));
+    _saveData();
+  }
+
+  void updateGradientStartColor(Color color) {
+    emit(state.copyWith(gradientStartColor: color));
+    _saveData();
+  }
+
+  void updateGradientEndColor(Color color) {
+    emit(state.copyWith(gradientEndColor: color));
+    _saveData();
+  }
+
+  void updateGradientDirection(int direction) {
+    emit(state.copyWith(gradientDirection: direction));
+    _saveData();
   }
 }
