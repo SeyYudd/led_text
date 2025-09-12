@@ -154,13 +154,17 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                 icon: Container(
                   padding: EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(30),
+                    color: Colors.blueGrey[600],
+                    // Hanya gunakan borderRadius jika shape rectangle
+                    borderRadius: !_isLocked ? BorderRadius.circular(6) : null,
+                    shape: _isLocked ? BoxShape.circle : BoxShape.rectangle,
                   ),
                   child: Icon(
-                    !_isLocked ? Icons.lock_open : Icons.lock,
+                    _isLocked
+                        ? Icons.zoom_in_map_rounded
+                        : Icons.zoom_out_map_rounded,
                     color: Colors.white,
-                    size: 30,
+                    size: 26,
                   ),
                 ),
               ),
@@ -209,49 +213,49 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Expanded(
-            child: GestureDetector(
-              onTap: () => _resetLockTimer(),
-              child: TextField(
-                controller: _textController,
-                focusNode: _textFocusNode,
-                maxLength: 100,
-                decoration: InputDecoration(
-                  hintText: AppConstants.inputTextHint,
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: EdgeInsets.all(16),
+            child: TextField(
+              controller: _textController,
+              focusNode: _textFocusNode,
+              maxLength: 80,
+              decoration: InputDecoration(
+                hintText: AppConstants.inputTextHint,
+                hintStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Colors.blueGrey.withValues(alpha: 0.8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                textInputAction: TextInputAction.done,
-                onChanged: (value) {
-                  final upper = value.toUpperCase();
-                  if (value != upper) {
-                    final selection = _textController.selection;
-                    _textController.value = TextEditingValue(
-                      text: upper,
-                      selection: selection,
-                    );
-                  }
-                },
-                onSubmitted: (value) => _updateText(),
+                contentPadding: EdgeInsets.all(16),
               ),
+              style: TextStyle(color: Colors.white, fontSize: 16),
+              textInputAction: TextInputAction.done,
+              onChanged: (value) {
+                final upper = value.toString();
+                if (value != upper) {
+                  final selection = _textController.selection;
+                  _textController.value = TextEditingValue(
+                    text: upper,
+                    selection: selection,
+                  );
+                }
+              },
+              onSubmitted: (value) => _updateText(),
             ),
           ),
           Container(
             margin: EdgeInsets.only(left: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[800],
+              color: Colors.blueGrey.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
               onPressed: () {
-                _resetLockTimer(); // Reset timer ketika expand button diklik
+                _resetLockTimer();
                 setState(() {
                   _showAdvancedSettings = !_showAdvancedSettings;
                   if (!_showAdvancedSettings) {
@@ -413,8 +417,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                 ],
               ),
             ),
-            if (state.isGradientEnabled == false)
-              _buildBlinkSection(state),
+            if (state.isGradientEnabled == false) _buildBlinkSection(state),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
