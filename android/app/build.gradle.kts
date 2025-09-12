@@ -1,9 +1,15 @@
 import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+}
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 android {
     namespace = "com.kakasey.digitaltextlumi"
@@ -31,22 +37,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
-
     signingConfigs {
         create("release") {
-            // // It's recommended to load these from a separate properties file (e.g., key.properties)
-            // // that is excluded from version control (e.g., via .gitignore) for security.
-            // // Example loading from a properties file:
-            // val keystoreProperties = java.util.Properties().apply {
-            //     load(java.io.FileInputStream(rootProject.file("key.properties")))
-            // }
-
-            storeFile = file("../app/my-key.jks")
-            storePassword = "ledkonser"
-            keyAlias = "my-key-alias"
-            keyPassword = "ledkonser"
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
         }
     }
+
     buildTypes {
         getByName("debug") {
             // signingConfig = signingConfigs.getByName("debug")
