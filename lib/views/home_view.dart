@@ -154,7 +154,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                 icon: Container(
                   padding: EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.blueGrey[600],
+                    color: Colors.black.withValues(alpha: 0.6),
                     // Hanya gunakan borderRadius jika shape rectangle
                     borderRadius: !_isLocked ? BorderRadius.circular(6) : null,
                     shape: _isLocked ? BoxShape.circle : BoxShape.rectangle,
@@ -226,7 +226,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                 hintText: AppConstants.inputTextHint,
                 hintStyle: TextStyle(color: Colors.white54),
                 filled: true,
-                fillColor: Colors.blueGrey.withValues(alpha: 0.8),
+                fillColor: Colors.black.withValues(alpha: 0.8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -250,7 +250,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
           Container(
             margin: EdgeInsets.only(left: 8),
             decoration: BoxDecoration(
-              color: Colors.blueGrey.withValues(alpha: 0.8),
+              color: Colors.black.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
@@ -284,7 +284,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
       duration: Duration(milliseconds: 300),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blueAccent.shade100.withValues(alpha: 0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -363,7 +363,7 @@ class _LEDTextScreenState extends State<LEDTextScreen> {
                       Expanded(
                         child: DropdownButton<String>(
                           value: state.selectedFont,
-                          dropdownColor: Colors.blueGrey,
+                          dropdownColor: Colors.black,
                           style: TextStyle(color: Colors.white),
                           isExpanded: true,
                           items: AppConstants.fontOptions

@@ -8,8 +8,7 @@ Widget buildSection(String title, Widget child) {
     decoration: BoxDecoration(
       border: Border.all(color: Colors.black),
       borderRadius: BorderRadius.circular(12),
-      color: Colors.blueGrey.withValues(alpha: 0.8),
-      
+      color: Colors.black.withValues(alpha: 0.8),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
